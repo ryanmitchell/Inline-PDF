@@ -116,7 +116,8 @@ class InlinePDF {
 				'pagecount' => 0,
 				'pdfurl' => $this->URL.$filename,
 				'thumbs' => array(),
-				'pages' => array()
+				'pages' => array(),
+				'geometry' => array('x'=>0, 'y'=>0)
 			);
 					
 			// set up imagick instance
@@ -142,6 +143,8 @@ class InlinePDF {
 			
 			// get geometry
 			$geometry = $imageInfo['geometry'];
+			
+			$json['geometry'] = array('x' => $geometry['width'], 'y' => $geometry['height']);
 			
 			// resize ratio
 			$ratio = 1;
@@ -177,16 +180,22 @@ class InlinePDF {
 						
 				// convert to jpg 
 				$im2 = new Imagick($filename.'['.$i.']');
-				//$im2->setImageColorspace(255); 
-				$im2->setCompression(Imagick::COMPRESSION_JPEG); 
-				$im2->setCompressionQuality(95); 
-				$im2->setImageFormat('jpeg'); 
+				
+				// png for big image
+				//$im2->setCompression(Imagick::COMPRESSION_PNG);
+				$im2->setImageFormat('png'); 
+				$im2->setCompressionQuality(95.5);  
 				
 				// main image max size
 				$im2->resizeImage($geometry['width'] * $ratio, $geometry['height'] * $ratio, imagick::FILTER_UNDEFINED, 1); 
 			
 				//write image on server 
-				$im2->writeImage($this->cachedir.'/'.$cachemod.'/page-'.$i.'.jpg'); 
+				$im2->writeImage($this->cachedir.'/'.$cachemod.'/page-'.$i.'.png'); 
+				
+				// jpg for thumb
+				$im2->setCompression(Imagick::COMPRESSION_JPEG); 
+				$im2->setCompressionQuality(95); 
+				$im2->setImageFormat('jpg'); 
 				
 				// thumb resize
 				$im2->resizeImage($geometry['width'] * $thumbratio, $geometry['height'] * $thumbratio, imagick::FILTER_UNDEFINED, 1); 
@@ -200,7 +209,7 @@ class InlinePDF {
 				
 				// add to json
 				$json['thumbs'][] = $this->CACHEURL.$cachemod.'/thumb-'.$i.'.jpg';
-				$json['pages'][] = $this->CACHEURL.$cachemod.'/page-'.$i.'.jpg';
+				$json['pages'][] = $this->CACHEURL.$cachemod.'/page-'.$i.'.png';
 			
 			}
 			
