@@ -117,28 +117,30 @@ var InlinePDF = new Class({
 				// defaults
 				x = y = 0;
 				
+				// if startpos
 				if (this.startpos){
 				
+					// work out delta
 					x = this.startpos.x - ev.page.x;
-					y = this.startpos.y - ev.page.y; // 100 is the same as our padding top
+					y = this.startpos.y - ev.page.y;
 					
+					// set startpos for next event fire
 					this.startpos = ev.page;
 				
 				}
 				
+				// current scroll + delta
 				y = this.viewer.getElement('div.page').getScroll().y + y;
 				x = this.viewer.getElement('div.page').getScroll().x + x;
 															
 				// work out where we should be?
 				this.scroller.set(x, y);
-				
-				//console.log (this.viewer.getElement('div.page').getScroll().y);
-				//console.log (y);
 			
 			}
 		
 		}.bindWithEvent(this));
 		
+		// catch mouseup on body in case we move off the viewer and release
 		document.id(document.body).addEvent('mouseup', function(ev){ this.viewer.getElement('div.page ul').fireEvent('mouseup', ev); }.bind(this));
 				
 		// set up scroller
