@@ -449,9 +449,6 @@ var InlinePDF = new Class({
 				
 			if (this.pagecount >= page){
 			
-				// set currentpage var
-				//this.currentpage = page;
-								
 				// get position
 				var pos = this.viewer.getElements('div.page ul li')[page].getPosition(this.viewer.getElement('div.page ul'));
 				
