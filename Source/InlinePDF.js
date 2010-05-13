@@ -160,14 +160,14 @@ var InlinePDF = new Class({
 		// on complete we should fire an event telling us what page we are on	
 		this.scroller.addEvent('complete', function(ev){
 						
-			scroll = this.viewer.getElement('div.page').getScroll().y;
+			scrollr = this.viewer.getElement('div.page').getScroll().y;
 						
 			this.viewer.getElements('div.page ul li').each(function(e, id){
 			
 				// work out which page is closest to the top of the window
-				if (scroll > e.getPosition(this.viewer.getElement('div.page')).y - 5 - parseInt(e.getStyle('margin-bottom'))){
-					if (scroll < (e.getPosition(this.viewer.getElement('div.page')).y - 5 - parseInt(e.getStyle('margin-bottom')) + e.getSize().y)){
-						if (id != this.currentpage){
+				if (scrollr > e.getPosition(self.viewer.getElement('div.page')).y - 5 - parseInt(e.getStyle('margin-bottom'))){
+					if (scrollr < (e.getPosition(self.viewer.getElement('div.page')).y - 5 - parseInt(e.getStyle('margin-bottom')) + e.getSize().y)){
+						if (id != self.currentpage){
 							self.currentpage = id;
 							self.fireEvent('pagechange', ev);
 						}
@@ -286,7 +286,10 @@ var InlinePDF = new Class({
 				if (tar.get('tag') == 'img') tar = tar.getParent('a');
 				if (tar.get('tag') != 'a') return;
 			
-				self.changePage(parseInt(tar.getProperty('href').replace('#', '')) - 1);
+				pg = tar.getProperty('href').split('#');
+				pg = parseInt(pg[1]);
+			
+				self.changePage(pg - 1);
 			
 			}).addEvent('mousedown', function(ev){
 			
@@ -299,7 +302,6 @@ var InlinePDF = new Class({
 			// use pagechange event to update selected state
 			this.addEvent('pagechange', function(ev){
 				self.viewer.getElements('ul.thumblist li').removeClass('selected');
-				console.log(self.currentpage);
 				self.viewer.getElements('ul.thumblist li')[self.currentpage].addClass('selected');
 			}.bindWithEvent(this));
 			
@@ -428,7 +430,7 @@ var InlinePDF = new Class({
 		// make data to query string
 		var data = $H({
 			pdf: pdf,
-			options: JSON.encode(opts),
+			options: JSON.encode(opts)
 		});
 		
 		// send request
