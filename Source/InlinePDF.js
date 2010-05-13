@@ -37,15 +37,16 @@ var InlinePDF = new Class({
 		url: 'InlinePDF.php',
 		selectedClass: 'selected',
 		showThumbs: true,
+		showPageChooser: true,
 		showBackForward: true,
 		showZoom: true,
 		showDownload: true,
-		initialZoom: 0.75
+		initialZoom: 0.75,
+		maxThumbDims: { x: 100, y: 75 },
+		maxPageDims: { x: 1000, y: 1000 }
 	},
 	
-	// values corresponding to the pdf
-	// set them as variables so that you can use
-	// instance.get('pagecount') etc...
+	// values corresponding to the pdf being displayed
 	pagecount: 0,
 	currentpage: 0,
 	pdfurl: '',
@@ -73,8 +74,15 @@ var InlinePDF = new Class({
 	// set up the viewer
 	setup: function(){
 	
-		// create our viewer window etc, canvas with fallback for non-canvas browsers
-		this.viewer = document.id(this.options.el).empty();
+		// create our viewer window
+		this.viewer = new Element('div').setStyles({
+			'position': 'relative',
+			'width' : document.id(this.options.el).getStyle('width'),
+			'height' : document.id(this.options.el).getStyle('height')
+		});
+		
+		// make it a child of our element
+		document.id(this.options.el).empty().adopt(this.viewer);
 		
 		// main page viewer
 		this.viewer.adopt(new Element('div', { html: '<ul></ul>' }).addClass('page'));
@@ -135,7 +143,8 @@ var InlinePDF = new Class({
 															
 				// work out where we should be?
 				this.scroller.set(x, y);
-			
+				this.scroller.fireEvent('complete');
+							
 			}
 		
 		}.bindWithEvent(this));
@@ -145,6 +154,33 @@ var InlinePDF = new Class({
 				
 		// set up scroller
 		this.scroller = new Fx.Scroll(this.viewer.getElement('div.page'));
+		
+		self = this;
+		
+		// on complete we should fire an event telling us what page we are on	
+		this.scroller.addEvent('complete', function(ev){
+						
+			scroll = this.viewer.getElement('div.page').getScroll().y;
+						
+			this.viewer.getElements('div.page ul li').each(function(e, id){
+			
+				// work out which page is closest to the top of the window
+				if (scroll > e.getPosition(this.viewer.getElement('div.page')).y - 5 - parseInt(e.getStyle('margin-bottom'))){
+					if (scroll < (e.getPosition(this.viewer.getElement('div.page')).y - 5 - parseInt(e.getStyle('margin-bottom')) + e.getSize().y)){
+						if (id != this.currentpage){
+							self.currentpage = id;
+							self.fireEvent('pagechange', ev);
+						}
+					}
+				}
+			
+			});
+			
+		}.bind(this));
+		
+		// create navbar
+		this.navbar = new Element('div', { html: '<p></p>' }).addClass('navbar');
+		this.viewer.adopt(this.navbar);
 		
 		// show back/foward
 		if (this.options.showBackForward){
@@ -180,14 +216,14 @@ var InlinePDF = new Class({
 			bf.getElement('p').adopt(nx);
 			
 			// adopt back/forward
-			this.viewer.adopt(bf);
+			this.navbar.adopt(bf);
 		
 		}
 		
 		// show download
 		if (this.options.showDownload){
 		
-			this.viewer.adopt(new Element('div', { html: '<p><a href="#download">Download</a></p>' }).addClass('download'));
+			this.navbar.adopt(new Element('div', { html: '<p><a href="#download">Download</a></p>' }).addClass('download'));
 			
 			self = this;
 			this.viewer.getElement('div.download a').addEvent('click', function(ev){
@@ -205,7 +241,7 @@ var InlinePDF = new Class({
 		
 			var self = this;
 			
-			this.viewer.adopt(new Element('div', {html: '<p></p>' }).addClass('zoom'));
+			this.navbar.adopt(new Element('div', {html: '<p></p>' }).addClass('zoom'));
 			
 			this.viewer.getElement('div.zoom p').adopt(new Element('select'));
 			
@@ -218,6 +254,22 @@ var InlinePDF = new Class({
 			
 			this.viewer.getElement('div.zoom select').addEvent('change', this.zoom.bind(this));
 
+		}
+		
+		// show page chooser
+		if (this.options.showPageChooser){
+		
+			this.navbar.adopt(new Element('div', {html: '<p>Page <select name="tp"><option value="1">1</option></select><span class="pc"> of 1</span></p>' }).addClass('pagechooser'));	
+			this.viewer.getElement('div.pagechooser select').addEvent('change', function(ev){ self.changePage(this.get('value') - 1); });
+			
+			var self = this;
+			
+			// use pagechange event to update select box
+			this.addEvent('pagechange', function(ev){
+				self.viewer.getElement('div.pagechooser select').set('value', self.currentpage + 1);
+				self.viewer.getElement('div.pagechooser select').get('value');
+			}.bindWithEvent(this));
+					
 		}
 		
 		// show thumblist?
@@ -243,10 +295,16 @@ var InlinePDF = new Class({
 			});
 		
 			this.viewer.adopt(tl);
+			
+			// use pagechange event to update selected state
+			this.addEvent('pagechange', function(ev){
+				self.viewer.getElements('ul.thumblist li').removeClass('selected');
+				console.log(self.currentpage);
+				self.viewer.getElements('ul.thumblist li')[self.currentpage].addClass('selected');
+			}.bindWithEvent(this));
+			
 		}
-		
-		this.viewer.adopt(new Element('div', {html: '<p>Still to do:<br />* Make 2 or 3 skins for it (preview esque, toolbar one)<br />* Tiling of pages side by side?</p>' }));
-	
+			
 		// fire setup event
 		this.fireEvent('setup');
 		
@@ -308,6 +366,15 @@ var InlinePDF = new Class({
 			
 			}
 			
+			// page chooser?
+			if (this.options.showPageChooser){
+				this.viewer.getElement('div.pagechooser select').empty();
+				for (i=1;i<=this.pagecount;i++){
+					this.viewer.getElement('div.pagechooser select').adopt(new Element('option',{ value:i, text:i }));
+				}
+				this.viewer.getElement('div.pagechooser span.pc').set('html', 'of ' + this.pagecount);				
+			}
+			
 			// fix it to first page
 			this.scroller.set(parseInt(this.viewer.getElements('div.page ul').getStyle('padding-left')), parseInt(this.viewer.getElements('div.page ul').getStyle('padding-top')));
 			
@@ -351,13 +418,17 @@ var InlinePDF = new Class({
 		
 		// default options
 		var opts = $merge({
-			nocache: false
+			nocache: false,
+			thumbmaxheight: this.options.maxThumbDims.y,
+			thumbmaxwidth: this.options.maxThumbDims.x,
+			pagemaxheight: this.options.maxPageDims.y,
+			pagemaxwidth: this.options.maxPageDims.x
 		}, opts);
 		
 		// make data to query string
 		var data = $H({
 			pdf: pdf,
-			options: JSON.encode(opts)
+			options: JSON.encode(opts),
 		});
 		
 		// send request
