@@ -534,9 +534,3 @@ var InlinePDF = new Class({
 	}
 
 });
-
-window.addEvent('domready', function(){
-	
-	window.ip = new InlinePDF({ el: document.id('viewer') }).show('http://www.nitec.com/cmsfiles/pdf/wg_2010_security_predictions.pdf');
-	
-});

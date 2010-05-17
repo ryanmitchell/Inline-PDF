@@ -21,6 +21,11 @@
     #viewer .zoom select, #viewer .pagechooser select { margin:0 0.5em 0 0; font-size:12px; }
     #viewer .pagechooser { left:300px; top:3px; position: absolute; }
     </style>
+    <script type="text/javascript">
+	window.addEvent('domready', function(){
+		new InlinePDF({ el: document.id('viewer') }).show('http://www.nitec.com/cmsfiles/pdf/wg_2010_security_predictions.pdf');
+	});
+    </script>
 </head>	
 <body>
 
