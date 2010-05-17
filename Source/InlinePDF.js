@@ -76,11 +76,7 @@ var InlinePDF = new Class({
 	initialize: function(o){
 		this.setOptions(o);
 	
-		/* set up our request object
-		this.request = new Request.JSON({ url:this.options.url, method:'post' })
-		.addEvent('success', this.success.bind(this))
-		.addEvent('failure', this.failure.bind(this));*/
-		
+		// set up our request object
 		this.request = new Request.JSONP({ url:this.options.url, onComplete: this.success.bind(this) });
 	
 		// canvas or not?
@@ -348,9 +344,7 @@ var InlinePDF = new Class({
 
 	// set the values of the pdf
 	success: function(j){
-	
-		console.log(this);
-		
+			
 		// error catching
 		if (!j){
 			this.failure();
