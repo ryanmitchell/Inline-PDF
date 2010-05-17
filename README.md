@@ -15,6 +15,6 @@ Features
 How to Use
 ----------
 
-window.addEvent('domready', function(){
-	new InlinePDF({ el: document.id('viewer') }).show('{PDF_URL}');
-});
+	window.addEvent('domready', function(){
+		new InlinePDF({ el: document.id('viewer') }).show('{PDF_URL}');
+	});
