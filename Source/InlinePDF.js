@@ -79,9 +79,6 @@ var InlinePDF = new Class({
 		// set up our request object
 		this.request = new Request.JSONP({ url:this.options.url, onComplete: this.success.bind(this) });
 	
-		// canvas or not?
-		this.canvas = this.canvasSupported();
-		
 		// setup
 		this.setup();
 	
@@ -332,16 +329,6 @@ var InlinePDF = new Class({
 		return this;	
 	},
 	
-	// is the <canvas> element supported?
-	canvasSupported: function() {
-		try {
-			canvas = !!(document.createElement('canvas').getContext('2d')); // S60
-		} catch(e){
-			canvas = !!(document.createElement('canvas').getContext); // IE
-		} 
-		return canvas;
-	},
-
 	// set the values of the pdf
 	success: function(j){
 			
