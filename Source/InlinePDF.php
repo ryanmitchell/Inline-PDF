@@ -16,9 +16,13 @@
 
 	* 09/05/2010 by Ryan Mitchell
 	  Initial implementation
+	  
+	* 17/05/2010 by Ryan Mitchell
+	  Changed to use Request.JSONP for cross-domain access
 
 */
 
+// no errors please
 ini_set('display_errors', 'off');
 
 class InlinePDF {
@@ -224,9 +228,7 @@ class InlinePDF {
 			return $json;
 			
 		} catch (exception $e){
-		
-			var_dump($e);
-				
+						
 	 		return array(
 				'error' => true,
 				'errormsg' => $e->getMessage()
@@ -237,9 +239,17 @@ class InlinePDF {
 
 };
 
+// content type
 header('Content-Type: text/json');
 
+// error catching
+if (!isset($_GET['callback']) || !isset($_GET['pdf']) || !isset($_GET['options'])){
+	echo 'Incorrect URL parameters specified';
+	exit();
+}
+
+// set up new instance, and run it
 $pdf = new InlinePDF();
-echo json_encode($pdf->run($_POST['pdf'], $_POST['options']));
+echo $_GET['callback'].'('.json_encode($pdf->run($_GET['pdf'], $_GET['options'])).');';
 
 ?>

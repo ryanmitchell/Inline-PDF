@@ -10,23 +10,41 @@
 
 	* 09/05/2010 by Ryan Mitchell
 	  Initial implementation
+	  
+	* 17/05/2010 by Ryan Mitchell
+	  Changed to use Request.JSONP for cross-domain access
 
 */
 
-// Fx.Scroll
-MooTools.More={version:"1.2.4.4",build:"6f6057dc645fdb7547689183b2311063bd653ddf"};Fx.Scroll=new Class({Extends:Fx,options:{offset:{x:0,y:0},wheelStops:true},initialize:function(b,a){this.element=this.subject=document.id(b);
-this.parent(a);var d=this.cancel.bind(this,false);if($type(this.element)!="element"){this.element=document.id(this.element.getDocument().body);}var c=this.element;
-if(this.options.wheelStops){this.addEvent("start",function(){c.addEvent("mousewheel",d);},true);this.addEvent("complete",function(){c.removeEvent("mousewheel",d);
-},true);}},set:function(){var a=Array.flatten(arguments);if(Browser.Engine.gecko){a=[Math.round(a[0]),Math.round(a[1])];}this.element.scrollTo(a[0],a[1]);
-},compute:function(c,b,a){return[0,1].map(function(d){return Fx.compute(c[d],b[d],a);});},start:function(c,g){if(!this.check(c,g)){return this;}var e=this.element.getScrollSize(),b=this.element.getScroll(),d={x:c,y:g};
-for(var f in d){var a=e[f];if($chk(d[f])){d[f]=($type(d[f])=="number")?d[f]:a;}else{d[f]=b[f];}d[f]+=this.options.offset[f];}return this.parent([b.x,b.y],[d.x,d.y]);
-},toTop:function(){return this.start(false,0);},toLeft:function(){return this.start(0,false);},toRight:function(){return this.start("right",false);},toBottom:function(){return this.start(false,"bottom");
-},toElement:function(b){var a=document.id(b).getPosition(this.element);return this.start(a.x,a.y);},scrollIntoView:function(c,e,d){e=e?$splat(e):["x","y"];
-var h={};c=document.id(c);var f=c.getPosition(this.element);var i=c.getSize();var g=this.element.getScroll();var a=this.element.getSize();var b={x:f.x+i.x,y:f.y+i.y};
-["x","y"].each(function(j){if(e.contains(j)){if(b[j]>g[j]+a[j]){h[j]=b[j]-a[j];}if(f[j]<g[j]){h[j]=f[j];}}if(h[j]==null){h[j]=g[j];}if(d&&d[j]){h[j]=h[j]+d[j];
-}},this);if(h.x!=g.x||h.y!=g.y){this.start(h.x,h.y);}return this;},scrollToCenter:function(c,e,d){e=e?$splat(e):["x","y"];c=$(c);var h={},f=c.getPosition(this.element),i=c.getSize(),g=this.element.getScroll(),a=this.element.getSize(),b={x:f.x+i.x,y:f.y+i.y};
-["x","y"].each(function(j){if(e.contains(j)){h[j]=f[j]-(a[j]-i[j])/2;}if(h[j]==null){h[j]=g[j];}if(d&&d[j]){h[j]=h[j]+d[j];}},this);if(h.x!=g.x||h.y!=g.y){this.start(h.x,h.y);
-}return this;}});
+// Fx.Scroll and Request.JSONP
+MooTools.More={version:"1.2.4.4",build:"6f6057dc645fdb7547689183b2311063bd653ddf"};(function(){var c=this;var b=function(){if(c.console&&console.log){try{console.log.apply(console,arguments);
+}catch(d){console.log(Array.slice(arguments));}}else{Log.logged.push(arguments);}return this;};var a=function(){this.logged.push(arguments);return this;
+};this.Log=new Class({logged:[],log:a,resetLog:function(){this.logged.empty();return this;},enableLog:function(){this.log=b;this.logged.each(function(d){this.log.apply(this,d);
+},this);return this.resetLog();},disableLog:function(){this.log=a;return this;}});Log.extend(new Log).enableLog();Log.logger=function(){return this.log.apply(this,arguments);
+};})();Fx.Scroll=new Class({Extends:Fx,options:{offset:{x:0,y:0},wheelStops:true},initialize:function(b,a){this.element=this.subject=document.id(b);this.parent(a);
+var d=this.cancel.bind(this,false);if($type(this.element)!="element"){this.element=document.id(this.element.getDocument().body);}var c=this.element;if(this.options.wheelStops){this.addEvent("start",function(){c.addEvent("mousewheel",d);
+},true);this.addEvent("complete",function(){c.removeEvent("mousewheel",d);},true);}},set:function(){var a=Array.flatten(arguments);if(Browser.Engine.gecko){a=[Math.round(a[0]),Math.round(a[1])];
+}this.element.scrollTo(a[0],a[1]);},compute:function(c,b,a){return[0,1].map(function(d){return Fx.compute(c[d],b[d],a);});},start:function(c,g){if(!this.check(c,g)){return this;
+}var e=this.element.getScrollSize(),b=this.element.getScroll(),d={x:c,y:g};for(var f in d){var a=e[f];if($chk(d[f])){d[f]=($type(d[f])=="number")?d[f]:a;
+}else{d[f]=b[f];}d[f]+=this.options.offset[f];}return this.parent([b.x,b.y],[d.x,d.y]);},toTop:function(){return this.start(false,0);},toLeft:function(){return this.start(0,false);
+},toRight:function(){return this.start("right",false);},toBottom:function(){return this.start(false,"bottom");},toElement:function(b){var a=document.id(b).getPosition(this.element);
+return this.start(a.x,a.y);},scrollIntoView:function(c,e,d){e=e?$splat(e):["x","y"];var h={};c=document.id(c);var f=c.getPosition(this.element);var i=c.getSize();
+var g=this.element.getScroll();var a=this.element.getSize();var b={x:f.x+i.x,y:f.y+i.y};["x","y"].each(function(j){if(e.contains(j)){if(b[j]>g[j]+a[j]){h[j]=b[j]-a[j];
+}if(f[j]<g[j]){h[j]=f[j];}}if(h[j]==null){h[j]=g[j];}if(d&&d[j]){h[j]=h[j]+d[j];}},this);if(h.x!=g.x||h.y!=g.y){this.start(h.x,h.y);}return this;},scrollToCenter:function(c,e,d){e=e?$splat(e):["x","y"];
+c=$(c);var h={},f=c.getPosition(this.element),i=c.getSize(),g=this.element.getScroll(),a=this.element.getSize(),b={x:f.x+i.x,y:f.y+i.y};["x","y"].each(function(j){if(e.contains(j)){h[j]=f[j]-(a[j]-i[j])/2;
+}if(h[j]==null){h[j]=g[j];}if(d&&d[j]){h[j]=h[j]+d[j];}},this);if(h.x!=g.x||h.y!=g.y){this.start(h.x,h.y);}return this;}});Request.JSONP=new Class({Implements:[Chain,Events,Options,Log],options:{url:"",data:{},retries:0,timeout:0,link:"ignore",callbackKey:"callback",injectScript:document.head},initialize:function(a){this.setOptions(a);
+if(this.options.log){this.enableLog();}this.running=false;this.requests=0;this.triesRemaining=[];},check:function(){if(!this.running){return true;}switch(this.options.link){case"cancel":this.cancel();
+return true;case"chain":this.chain(this.caller.bind(this,arguments));return false;}return false;},send:function(c){if(!$chk(arguments[1])&&!this.check(c)){return this;
+}var e=$type(c),a=this.options,b=$chk(arguments[1])?arguments[1]:this.requests++;if(e=="string"||e=="element"){c={data:c};}c=$extend({data:a.data,url:a.url},c);
+if(!$chk(this.triesRemaining[b])){this.triesRemaining[b]=this.options.retries;}var d=this.triesRemaining[b];(function(){var f=this.getScript(c);this.log("JSONP retrieving script with url: "+f.get("src"));
+this.fireEvent("request",f);this.running=true;(function(){if(d){this.triesRemaining[b]=d-1;if(f){f.destroy();this.send(c,b).fireEvent("retry",this.triesRemaining[b]);
+}}else{if(f&&this.options.timeout){f.destroy();this.cancel().fireEvent("failure");}}}).delay(this.options.timeout,this);}).delay(Browser.Engine.trident?50:0,this);
+return this;},cancel:function(){if(!this.running){return this;}this.running=false;this.fireEvent("cancel");return this;},getScript:function(c){var b=Request.JSONP.counter,d;
+Request.JSONP.counter++;switch($type(c.data)){case"element":d=document.id(c.data).toQueryString();break;case"object":case"hash":d=Hash.toQueryString(c.data);
+}var e=c.url+(c.url.test("\\?")?"&":"?")+(c.callbackKey||this.options.callbackKey)+"=Request.JSONP.request_map.request_"+b+(d?"&"+d:"");if(e.length>2083){this.log("JSONP "+e+" will fail in Internet Explorer, which enforces a 2083 bytes length limit on URIs");
+}var a=new Element("script",{type:"text/javascript",src:e});Request.JSONP.request_map["request_"+b]=function(){this.success(arguments,a);}.bind(this);return a.inject(this.options.injectScript);
+},success:function(b,a){if(a){a.destroy();}this.running=false;this.log("JSONP successfully retrieved: ",b);this.fireEvent("complete",b).fireEvent("success",b).callChain();
+}});Request.JSONP.counter=0;Request.JSONP.request_map={};
 
 var InlinePDF = new Class({
 
@@ -34,7 +52,7 @@ var InlinePDF = new Class({
 	
 	options: {
 		el: document.id(document.body),
-		url: 'InlinePDF.php',
+		url: 'http://pdf.rtnetworks.net/InlinePDF.php',
 		selectedClass: 'selected',
 		showThumbs: true,
 		showPageChooser: true,
@@ -58,10 +76,12 @@ var InlinePDF = new Class({
 	initialize: function(o){
 		this.setOptions(o);
 	
-		// set up our request object
+		/* set up our request object
 		this.request = new Request.JSON({ url:this.options.url, method:'post' })
 		.addEvent('success', this.success.bind(this))
-		.addEvent('failure', this.failure.bind(this));
+		.addEvent('failure', this.failure.bind(this));*/
+		
+		this.request = new Request.JSONP({ url:this.options.url, onComplete: this.success.bind(this) });
 	
 		// canvas or not?
 		this.canvas = this.canvasSupported();
@@ -328,6 +348,8 @@ var InlinePDF = new Class({
 
 	// set the values of the pdf
 	success: function(j){
+	
+		console.log(this);
 		
 		// error catching
 		if (!j){
@@ -357,7 +379,7 @@ var InlinePDF = new Class({
 			});
 			this.pages.each(function(el, i){
 				this.viewer.getElement('div.page ul').adopt(new Element('li', { html: '<img src="' + el + '" />' }));
-			});
+			}, this);
 			
 			// show thumbs?
 			if (this.options.showThumbs){
@@ -366,7 +388,7 @@ var InlinePDF = new Class({
 				this.viewer.getElement('ul.thumblist').empty();
 				this.thumbs.each(function(el, i){
 					this.viewer.getElement('ul.thumblist').adopt(new Element('li', { html: '<a href="#' + (i+1) + '"><img src="' + el + '" /></a>' }));
-				});
+				}, this);
 			
 			}
 			
@@ -430,13 +452,13 @@ var InlinePDF = new Class({
 		}, opts);
 		
 		// make data to query string
-		var data = $H({
+		var data = {
 			pdf: pdf,
 			options: JSON.encode(opts)
-		});
+		};
 		
 		// send request
-		this.request.send(data.toQueryString());
+		this.request.send({ data: data });
 		
 		return this;
 				
