@@ -7,10 +7,14 @@ Features
 --------
 
 * Converts each page of PDF to JPEG
-* Allows for zooming using canvas element
+* Cross site compatible
+* Control the size of thumbnails and page images
+* CSS skin-able and customisable
 
 
 How to Use
 ----------
 
-Coming soon - still in development
+window.addEvent('domready', function(){
+	new InlinePDF({ el: document.id('viewer') }).show('{PDF_URL}');
+});
