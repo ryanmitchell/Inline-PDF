@@ -6,7 +6,7 @@ A inline PDF viewer with a [MooTools](http://mootools.net/) front end, and a [PH
 Features
 --------
 
-* Converts each page of PDF to JPEG
+* Converts each page of PDF to an image
 * Cross site compatible
 * Control the size of thumbnails and page images
 * CSS skin-able and customisable
